@@ -1,9 +1,9 @@
 export default function DashboardLayout({children}:{children:React.ReactNode}){
 
 
-    setTimeout(()=>{
-        console.log('dashBorDdddd111111111')
-    },7000)
+    // setTimeout(()=>{
+    //     console.log('dashBorDdddd111111111')
+    // },7000)
 
 
 

@@ -14,9 +14,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout(props:{
   children: React.ReactNode,
-  analytics: React.ReactNode,
-  team:React.ReactNode,
-  modal:React.ReactNode
+  // analytics: React.ReactNode,
+  // team:React.ReactNode,
+  // modal:React.ReactNode
 }) {
 
 
@@ -26,10 +26,10 @@ export default function RootLayout(props:{
 
         <Suspense fallback={<Loading/>}>
         app根页面layout.tsx参数<br/>
-        {/* {props.children}
-        {props.analytics}
-        {props.team} */}
-        {props.modal}
+        {props.children}
+        {/* {props.analytics} */}
+        {/* {props.team} */}
+        {/* {props.modal} */}
 
         <br/>
 
