@@ -11,7 +11,7 @@ const pool = mysql.createPool({
   database: 'dseg_cd',
 })
  
-export async function GET(request) {
+export async function GET(request:any) {
     console.log(111111111111)
   try {
     // 从连接池中获取连接
