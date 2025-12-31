@@ -1,9 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-
-    images:{
-        domains:['pbs.twing.com']
-    }
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'pbs.twing.com',
+            },
+        ],
+    },
 };
 
 export default nextConfig;
