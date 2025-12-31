@@ -252,8 +252,8 @@ const LiveChatBotPage = () => {
       if (aiEnabled && danmuContent && !aiProcessing) {
         setAiProcessing(true)
         
-        // 调用AI获取回复
-        callDoubaoAIThroughAPI(danmuContent, `用户 ${username} 在直播间说: ${danmuContent}`)
+        // 调用AI获取回复（传递page_key以便API从数据库读取配置）
+        callDoubaoAIThroughAPI(danmuContent, `用户 ${username} 在直播间说: ${danmuContent}`, 'live-chat-bot')
           .then((aiResponse) => {
             setAiProcessing(false)
             

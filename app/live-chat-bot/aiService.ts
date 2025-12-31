@@ -84,7 +84,8 @@ export async function callDoubaoAI(
  */
 export async function callDoubaoAIThroughAPI(
   userMessage: string,
-  context?: string
+  context?: string,
+  page_key?: string
 ): Promise<DoubaoAIResponse> {
   try {
     const response = await fetch('/api/doubao-ai', {
@@ -95,6 +96,7 @@ export async function callDoubaoAIThroughAPI(
       body: JSON.stringify({
         message: userMessage,
         context: context || '直播间消息',
+        page_key: page_key || 'chat',
       }),
     })
 

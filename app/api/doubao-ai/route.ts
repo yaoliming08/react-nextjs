@@ -12,7 +12,7 @@ import { doubaoConfig, validateDoubaoConfig } from '@/config/doubao'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { message, context } = body
+    const { message, context, page_key = 'chat' } = body
 
     if (!message) {
       return NextResponse.json(
@@ -31,8 +31,41 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 使用配置文件中的配置
-    const { apiKey, apiUrl, model } = doubaoConfig
+    // 从数据库获取页面配置
+    let aiConfig = {
+      model: doubaoConfig.model,
+      temperature: doubaoConfig.defaultParams.temperature,
+      max_tokens: doubaoConfig.defaultParams.max_tokens,
+      systemPrompt: doubaoConfig.systemPrompt,
+    }
+
+    try {
+      const { query } = await import('@/lib/db')
+      const rows = await query(
+        'SELECT config_data FROM chat_config WHERE page_key = ? AND is_active = 1',
+        [page_key]
+      ) as any[]
+      
+      if (rows.length > 0) {
+        const configData = typeof rows[0].config_data === 'string'
+          ? JSON.parse(rows[0].config_data)
+          : rows[0].config_data
+        
+        if (configData.ai) {
+          // 使用数据库中的AI配置
+          if (configData.ai.model) aiConfig.model = configData.ai.model
+          if (configData.ai.temperature !== undefined) aiConfig.temperature = configData.ai.temperature
+          if (configData.ai.maxTokens !== undefined) aiConfig.max_tokens = configData.ai.maxTokens
+          if (configData.ai.systemPrompt) aiConfig.systemPrompt = configData.ai.systemPrompt
+        }
+      }
+    } catch (error) {
+      console.error('读取数据库配置失败，使用默认配置:', error)
+      // 使用默认配置继续
+    }
+
+    // 使用配置
+    const { apiKey, apiUrl } = doubaoConfig
 
     // 调用豆包AI API
     const response = await fetch(apiUrl, {
@@ -42,19 +75,19 @@ export async function POST(request: NextRequest) {
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: model,
+        model: aiConfig.model,
         messages: [
           {
             role: 'system',
-            content: doubaoConfig.systemPrompt,
+            content: aiConfig.systemPrompt,
           },
           {
             role: 'user',
             content: message,
           },
         ],
-        temperature: doubaoConfig.defaultParams.temperature,
-        max_tokens: doubaoConfig.defaultParams.max_tokens,
+        temperature: aiConfig.temperature,
+        max_tokens: aiConfig.max_tokens,
       }),
     })
 
