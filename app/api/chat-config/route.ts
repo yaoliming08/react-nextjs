@@ -62,12 +62,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: true, data: config })
     }
 
-    // 获取所有配置列表
+    // 获取所有配置列表（包含完整配置数据）
     const rows = await query(
-      'SELECT id, page_key, page_name, is_active, description, created_at, updated_at FROM chat_config ORDER BY created_at DESC'
+      'SELECT * FROM chat_config ORDER BY created_at DESC'
     ) as any[]
+    
+    // 解析每个配置的JSON字段
+    const configsWithParsedData = rows.map(row => ({
+      ...row,
+      config_data: typeof row.config_data === 'string' 
+        ? JSON.parse(row.config_data) 
+        : row.config_data
+    }))
 
-    return NextResponse.json({ success: true, data: rows })
+    return NextResponse.json({ success: true, data: configsWithParsedData })
   } catch (error) {
     console.error('获取配置失败:', error)
     return NextResponse.json(

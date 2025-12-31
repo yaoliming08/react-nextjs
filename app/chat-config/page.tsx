@@ -128,10 +128,28 @@ const ChatConfigPage = () => {
   }
 
   // 编辑配置
-  const handleEdit = (config: ChatConfig) => {
-    setEditingConfig(config)
-    setFormData({ ...config })
-    setShowForm(true)
+  const handleEdit = async (config: ChatConfig) => {
+    try {
+      // 从数据库重新获取完整配置数据
+      const response = await fetch(`/api/chat-config?id=${config.id}`)
+      const result = await response.json()
+      
+      if (result.success && result.data) {
+        const fullConfig = result.data
+        // 确保config_data是对象格式
+        if (typeof fullConfig.config_data === 'string') {
+          fullConfig.config_data = JSON.parse(fullConfig.config_data)
+        }
+        setEditingConfig(fullConfig)
+        setFormData(fullConfig)
+        setShowForm(true)
+      } else {
+        alert('获取配置详情失败')
+      }
+    } catch (error) {
+      console.error('获取配置详情失败:', error)
+      alert('获取配置详情失败')
+    }
   }
 
   // 切换启用状态
@@ -296,16 +314,21 @@ const ChatConfigPage = () => {
                       </label>
                       <select
                         value={formData.config_data?.tts?.type || 'browser'}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          config_data: {
-                            ...formData.config_data,
-                            tts: {
-                              ...formData.config_data?.tts,
-                              type: e.target.value as 'browser' | 'edge' | 'third-party',
+                        onChange={(e) => {
+                          const newType = e.target.value as 'browser' | 'edge' | 'third-party'
+                          setFormData({
+                            ...formData,
+                            config_data: {
+                              ...formData.config_data,
+                              tts: {
+                                type: newType,
+                                autoPlay: formData.config_data?.tts?.autoPlay ?? true,
+                                edgeOptions: formData.config_data?.tts?.edgeOptions,
+                                thirdPartyOptions: formData.config_data?.tts?.thirdPartyOptions,
+                              },
                             },
-                          },
-                        })}
+                          })
+                        }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md"
                       >
                         <option value="browser">浏览器原生API</option>
@@ -323,8 +346,10 @@ const ChatConfigPage = () => {
                           config_data: {
                             ...formData.config_data,
                             tts: {
-                              ...formData.config_data?.tts,
+                              type: formData.config_data?.tts?.type || 'browser',
                               autoPlay: e.target.checked,
+                              edgeOptions: formData.config_data?.tts?.edgeOptions,
+                              thirdPartyOptions: formData.config_data?.tts?.thirdPartyOptions,
                             },
                           },
                         })}
@@ -348,11 +373,13 @@ const ChatConfigPage = () => {
                               config_data: {
                                 ...formData.config_data,
                                 tts: {
-                                  ...formData.config_data?.tts,
+                                  type: formData.config_data?.tts?.type || 'browser',
+                                  autoPlay: formData.config_data?.tts?.autoPlay ?? true,
                                   edgeOptions: {
                                     ...formData.config_data?.tts?.edgeOptions,
                                     voice: e.target.value,
                                   },
+                                  thirdPartyOptions: formData.config_data?.tts?.thirdPartyOptions,
                                 },
                               },
                             })}
@@ -375,7 +402,9 @@ const ChatConfigPage = () => {
                               config_data: {
                                 ...formData.config_data,
                                 tts: {
-                                  ...formData.config_data?.tts,
+                                  type: formData.config_data?.tts?.type || 'browser',
+                                  autoPlay: formData.config_data?.tts?.autoPlay ?? true,
+                                  edgeOptions: formData.config_data?.tts?.edgeOptions,
                                   thirdPartyOptions: {
                                     ...formData.config_data?.tts?.thirdPartyOptions,
                                     provider: e.target.value as 'baidu' | 'aliyun' | 'tencent',
