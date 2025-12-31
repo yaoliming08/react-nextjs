@@ -218,14 +218,15 @@ console.log(`🚀 模拟WebSocket服务器启动成功！`)
 console.log(`📡 监听端口: ${PORT}`)
 console.log(`⏱️  消息发送间隔: ${INTERVAL}ms`)
 console.log(`🔗 连接地址: ws://localhost:${PORT}`)
+console.log(`👥 支持多客户端同时连接（消息会广播到所有客户端）`)
 console.log(`\n按 Ctrl+C 停止服务器\n`)
 
 // 存储所有连接的客户端
 const clients = new Set()
 
 wss.on('connection', (ws) => {
-  console.log('✅ 新客户端连接')
   clients.add(ws)
+  console.log(`✅ 新客户端连接 (当前连接数: ${clients.size})`)
   
   // 发送欢迎消息
   ws.send(JSON.stringify({
@@ -239,8 +240,8 @@ wss.on('connection', (ws) => {
   
   // 客户端断开连接
   ws.on('close', () => {
-    console.log('❌ 客户端断开连接')
     clients.delete(ws)
+    console.log(`❌ 客户端断开连接 (当前连接数: ${clients.size})`)
   })
   
   // 处理客户端消息
@@ -295,14 +296,24 @@ function broadcastMessage() {
   const messageType = selectMessageType()
   const message = messageType.create()
   
-  console.log(`📤 发送${messageType.name}消息:`, JSON.parse(message.Data).Content || JSON.parse(message.Data).GiftName)
+  const messageContent = JSON.parse(message.Data).Content || JSON.parse(message.Data).GiftName || '消息'
+  console.log(`📤 发送${messageType.name}消息到 ${clients.size} 个客户端:`, messageContent)
   
   const messageStr = JSON.stringify(message)
+  let sentCount = 0
   clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(messageStr)
+      sentCount++
+    } else {
+      // 清理已关闭的连接
+      clients.delete(client)
     }
   })
+  
+  if (sentCount > 0) {
+    console.log(`   ✅ 成功发送到 ${sentCount} 个客户端`)
+  }
 }
 
 // 启动定时器
