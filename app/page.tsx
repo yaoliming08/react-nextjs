@@ -26,7 +26,7 @@ const Home = () => {
                   </svg>
                 </div>
                 <h2 className="text-2xl font-semibold text-gray-800 mb-3 group-hover:text-blue-600 transition-colors">
-                  机器人聊天
+                  机器人聊天1
                 </h2>
                 <p className="text-gray-600 leading-relaxed">
                   与智能AI助手进行对话，获取帮助和解答问题
