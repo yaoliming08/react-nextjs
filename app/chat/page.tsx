@@ -1,6 +1,7 @@
 'use client'
 import React, { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
+import { callDoubaoAIThroughAPI } from '../live-chat-bot/aiService'
 
 interface Message {
   id: number
@@ -33,9 +34,10 @@ const ChatPage = () => {
   const handleSend = async () => {
     if (!inputValue.trim() || isLoading) return
 
+    const userMessageText = inputValue.trim()
     const userMessage: Message = {
       id: messages.length + 1,
-      text: inputValue,
+      text: userMessageText,
       sender: 'user',
       timestamp: new Date()
     }
@@ -44,17 +46,41 @@ const ChatPage = () => {
     setInputValue('')
     setIsLoading(true)
 
-    // 模拟AI回复（实际项目中应该调用真实的AI API）
-    setTimeout(() => {
-      const botMessage: Message = {
+    try {
+      // 调用豆包AI获取回复
+      const aiResponse = await callDoubaoAIThroughAPI(userMessageText, '用户聊天消息')
+      
+      if (aiResponse.success && aiResponse.reply) {
+        const botMessage: Message = {
+          id: messages.length + 2,
+          text: aiResponse.reply,
+          sender: 'bot',
+          timestamp: new Date()
+        }
+        setMessages(prev => [...prev, botMessage])
+      } else {
+        // AI回复失败，显示错误消息
+        const errorMessage: Message = {
+          id: messages.length + 2,
+          text: `抱歉，我暂时无法回复。${aiResponse.error ? `错误：${aiResponse.error}` : '请稍后再试。'}`,
+          sender: 'bot',
+          timestamp: new Date()
+        }
+        setMessages(prev => [...prev, errorMessage])
+      }
+    } catch (error) {
+      // 捕获异常
+      console.error('调用AI失败:', error)
+      const errorMessage: Message = {
         id: messages.length + 2,
-        text: `我理解您说的是"${inputValue}"。这是一个模拟回复，您可以在实际项目中接入真实的AI API。`,
+        text: '抱歉，发生了错误，请稍后再试。',
         sender: 'bot',
         timestamp: new Date()
       }
-      setMessages(prev => [...prev, botMessage])
+      setMessages(prev => [...prev, errorMessage])
+    } finally {
       setIsLoading(false)
-    }, 1000)
+    }
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -150,4 +176,5 @@ const ChatPage = () => {
 }
 
 export default ChatPage
+
 
