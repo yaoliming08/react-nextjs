@@ -22,7 +22,7 @@ const Home = () => {
  
   return (
     <div>
-      <h1>测试mysql连接:{data}</h1>
+      <h1>测试mysql连接2222:{data}</h1>
     </div>
   )
 }
